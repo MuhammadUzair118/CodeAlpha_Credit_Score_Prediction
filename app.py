@@ -89,7 +89,7 @@ def load_production_assets():
 try:
     model, scaler = load_production_assets()
 except FileNotFoundError:
-    st.error("System Error: Critical mathematical model assets ('champion_xgb_model.pkl' or 'scaler.pkl') missing from the server root directory.")
+    st.error("System Error: Critical mathematical model assets missing from the server root directory.")
     st.stop()
 
 # ==============================================================================
@@ -130,46 +130,60 @@ with st.form("underwriting_assessment_form"):
 # ==============================================================================
 if submit_execution:
     # 1. Engineered Metric Derivation
-    loan_to_income_ratio = loan_amnt / person_income
+    loan_to_income_ratio = float(loan_amnt / person_income)
 
-    # 2. Extract and Scale Numeric Sub-vectors
-    raw_numeric_features = np.array([[person_age, person_income, person_emp_length, loan_amnt, person_clean_int_rate, loan_to_income_ratio]])
-    scaled_numeric_features = scaler.transform(raw_numeric_features)[0]
+    # 2. Build a structured base dictionary with exact column names from training
+    input_data = {
+        'person_age': float(person_age),
+        'person_income': float(person_income),
+        'person_emp_length': float(person_emp_length),
+        'loan_amnt': float(loan_amnt),
+        'person_clean_int_rate': float(person_clean_int_rate),
+        'loan_to_income_ratio': loan_to_income_ratio,
+        'person_home_ownership_OTHER': 0,
+        'person_home_ownership_OWN': 0,
+        'person_home_ownership_RENT': 0,
+        'loan_intent_EDUCATION': 0,
+        'loan_intent_MEDICAL': 0,
+        'loan_intent_PERSONAL': 0,
+        'loan_intent_VENTURE': 0,
+        'cb_person_default_on_file_Y': 0
+    }
 
-    # 3. Deterministic Mapping of One-Hot Encoded Structural Switches
-    # Order matches the exact mathematical training footprints expected by your model
-    home_other = 1 if home_ownership == "OTHER" else 0
-    home_own   = 1 if home_ownership == "OWN" else 0
-    home_rent  = 1 if home_ownership == "RENT" else 0
+    # 3. Trigger structural hot-encoded indicators directly
+    if home_ownership != "MORTGAGE" and f"person_home_ownership_{home_ownership}" in input_data:
+        input_data[f"person_home_ownership_{home_ownership}"] = 1
+
+    if loan_intent != "EDUCATION" and f"loan_intent_{loan_intent}" in input_data:
+        input_data[f"loan_intent_{loan_intent}"] = 1
+
+    if historical_default == "YES":
+        input_data['cb_person_default_on_file_Y'] = 1
+
+    # Convert to single-row DataFrame
+    df_inference = pd.DataFrame([input_data])
+
+    # Enforce exact structural column order as verified in model schema
+    ordered_columns = [
+        'person_age', 'person_income', 'person_emp_length', 'loan_amnt', 
+        'person_clean_int_rate', 'loan_to_income_ratio',
+        'person_home_ownership_OTHER', 'person_home_ownership_OWN', 'person_home_ownership_RENT',
+        'loan_intent_EDUCATION', 'loan_intent_MEDICAL', 'loan_intent_PERSONAL', 'loan_intent_VENTURE',
+        'cb_person_default_on_file_Y'
+    ]
+    df_inference = df_inference[ordered_columns]
+
+    # 4. Scale continuous variables via local dictionary features safely
+    numeric_features = ['person_age', 'person_income', 'person_emp_length', 'loan_amnt', 'person_clean_int_rate', 'loan_to_income_ratio']
     
-    intent_edu = 1 if loan_intent == "EDUCATION" else 0
-    intent_med = 1 if loan_intent == "MEDICAL" else 0
-    intent_per = 1 if loan_intent == "PERSONAL" else 0
-    intent_ven = 1 if loan_intent == "VENTURE" else 0
+    # Scale continuous subset using the loaded scaler instance mapping
+    df_inference[numeric_features] = scaler.transform(df_inference[numeric_features])
+
+    # 5. Non-leakage Machine Learning Execution (Passing pure array to prevent feature name checks entirely)
+    final_matrix_values = df_inference.values
     
-    default_y  = 1 if historical_default == "YES" else 0
-
-    # Assemble raw values into flat array matching training array columns precisely
-    aligned_input_matrix = np.array([[
-        scaled_numeric_features[0], # person_age
-        scaled_numeric_features[1], # person_income
-        scaled_numeric_features[2], # person_emp_length
-        scaled_numeric_features[3], # loan_amnt
-        scaled_numeric_features[4], # person_clean_int_rate
-        scaled_numeric_features[5], # loan_to_income_ratio
-        home_other, 
-        home_own, 
-        home_rent, 
-        intent_edu, 
-        intent_med, 
-        intent_per, 
-        intent_ven, 
-        default_y
-    ]])
-
-    # 4. Non-leakage Machine Learning Execution
-    prediction = model.predict(aligned_input_matrix)[0]
-    risk_probability = model.predict_proba(aligned_input_matrix)[0][1]
+    prediction = model.predict(final_matrix_values)[0]
+    risk_probability = model.predict_proba(final_matrix_values)[0][1]
 
     # ==============================================================================
     # 5. ENTERPRISE REPORTING METRICS PANEL
