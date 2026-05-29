@@ -14,7 +14,6 @@ st.set_page_config(
 )
 
 # Custom World-Class Dark Minimalist UI Layout via Native HTML Injection
-# (Using st.html to perfectly match Streamlit 1.58+ architecture requirements)
 st.html("""
 <style>
     /* Global Background and Typography Overrides */
@@ -99,9 +98,10 @@ except FileNotFoundError:
 title_col, logo_col = st.columns([5, 1])
 with title_col:
     st.title("AuraRisk // Credit Scoring OS")
-    st.markdown("<p style='color: #64748B !important; font-size: 15px; margin-top: -10px;'>Risk assessment node powered by an Optimized Gradient Boosted Decision Tree pipeline.</p>", unsafe_html=True)
+    # FIX: Swapped legacy st.markdown to native safe st.html
+    st.html("<p style='color: #64748B !important; font-size: 15px; margin-top: -10px;'>Risk assessment node powered by an Optimized Gradient Boosted Decision Tree pipeline.</p>")
 
-st.markdown("<br>", unsafe_html=True)
+st.html("<br>")
 
 # Encapsulating inputs inside a clean unified Form layout
 with st.form("risk_assessment_form"):
@@ -124,7 +124,7 @@ with st.form("risk_assessment_form"):
         loan_intent = st.selectbox("Capital Allocation Purpose", ["EDUCATION", "MEDICAL", "PERSONAL", "VENTURE"])
         historical_default = st.selectbox("Historical Credit Bureau Default Flag", ["NO", "YES"])
         
-    st.markdown("<br>", unsafe_html=True)
+    st.html("<br>")
     submit_execution = st.form_submit_button("RUN AUTOMATED RISK ANALYSIS")
 
 # ==============================================================================
@@ -185,7 +185,7 @@ if submit_execution:
     # ==============================================================================
     # 5. METRIC PRESENTATION DISPLAY
     # ==============================================================================
-    st.markdown("<hr>", unsafe_html=True)
+    st.html("<hr>")
     st.subheader("📊 Underwriting Decision Results")
     
     res_col1, res_col2 = st.columns(2)
