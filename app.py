@@ -13,8 +13,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom World-Class Dark Minimalist UI Layout via Injection
-st.markdown("""
+# Custom World-Class Dark Minimalist UI Layout via Native HTML Injection
+# (Using st.html to perfectly match Streamlit 1.58+ architecture requirements)
+st.html("""
 <style>
     /* Global Background and Typography Overrides */
     .stApp {
@@ -72,7 +73,7 @@ st.markdown("""
         border-color: #1F2937 !important;
     }
 </style>
-""", unsafe_html=True)
+""")
 
 # ==============================================================================
 # 2. SECURE COMPUTATIONAL ENGINE LOADING
@@ -191,25 +192,25 @@ if submit_execution:
     
     with res_col1:
         if prediction == 0:
-            st.markdown("""
+            st.html("""
             <div style='background-color: rgba(16, 185, 129, 0.1); border-left: 5px solid #10B981; padding: 1.5rem; border-radius: 8px;'>
                 <h3 style='color: #10B981 !important; margin: 0; font-size: 20px;'>🟢 RISK METRICS: COMPLIANT</h3>
                 <p style='color: #94A3B8; margin-top: 5px; margin-bottom: 0;'>Application passes institutional underwriting volatility thresholds.</p>
             </div>
-            """, unsafe_html=True)
+            """)
         else:
-            st.markdown("""
+            st.html("""
             <div style='background-color: rgba(239, 68, 68, 0.1); border-left: 5px solid #EF4444; padding: 1.5rem; border-radius: 8px;'>
                 <h3 style='color: #EF4444 !important; margin: 0; font-size: 20px;'>🔴 RISK METRICS: NON-COMPLIANT</h3>
                 <p style='color: #94A3B8; margin-top: 5px; margin-bottom: 0;'>Application exhibits volatility risk signals tracking beyond acceptable levels.</p>
             </div>
-            """, unsafe_html=True)
+            """)
             
     with res_col2:
-        st.markdown(f"""
+        st.html(f"""
         <div style='background-color: #111827; border: 1px solid #1F2937; padding: 1.15rem; border-radius: 8px;'>
             <span style='color: #64748B; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;'>Modeled Default Probability</span>
             <h2 style='color: #FFFFFF; font-size: 32px; margin: 5px 0 10px 0; font-weight: 700;'>{risk_probability * 100:.2f}%</h2>
         </div>
-        """, unsafe_html=True)
+        """)
         st.progress(float(risk_probability))
