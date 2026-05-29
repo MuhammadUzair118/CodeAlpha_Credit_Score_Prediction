@@ -13,10 +13,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Native HTML Injection for a clean, premium enterprise white/slate layout
+# Premium HTML style injections for clean, modern enterprise typography and layout
 st.html("""
 <style>
-    /* Global Base Canvas - Pure White and Professional Slate Gray */
+    /* Global Base Canvas */
     .stApp {
         background-color: #FFFFFF !important;
     }
@@ -49,13 +49,13 @@ st.html("""
         box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
     }
     
-    /* Premium Corporate Action Button (Stripe/Mercury Style Blue) */
+    /* Premium Corporate Action Button (Stripe Style Blue) */
     .stButton>button {
         background: #0284C7 !important;
         color: #FFFFFF !important;
         border: 1px solid #0369A1 !important;
         border-radius: 6px !important;
-        padding: 0.75rem 2rem !important;
+        padding: 0.85rem 2rem !important;
         font-weight: 600 !important;
         font-size: 15px !important;
         letter-spacing: -0.01em !important;
@@ -68,7 +68,19 @@ st.html("""
         box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15) !important;
     }
     
-    /* Structural Dividers */
+    /* Premium Style Overrides for Streamlit Metrics Component */
+    [data-testid="stMetricValue"] {
+        font-size: 28px !important;
+        font-weight: 700 !important;
+        color: #0F172A !important;
+    }
+    [data-testid="stMetricLabel"] p {
+        font-size: 12px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        color: #64748B !important;
+    }
+    
     hr {
         border-color: #E2E8F0 !important;
     }
@@ -105,7 +117,6 @@ st.html("<br>")
 with st.form("underwriting_assessment_form"):
     st.subheader("📋 Empirical Risk Metrics Input Matrix")
     
-    # 3-Column Structural Grid
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -129,10 +140,8 @@ with st.form("underwriting_assessment_form"):
 # 4. DETERMINISTIC FEATURE ENGINEERING & RIGID ALIGNMENT MATRIX
 # ==============================================================================
 if submit_execution:
-    # 1. Engineered Metric Derivation
     loan_to_income_ratio = float(loan_amnt / person_income)
 
-    # 2. Build structured dictionary with the exact 13 verified columns from diagnostics
     input_data = {
         'person_age': float(person_age),
         'person_income': float(person_income),
@@ -149,21 +158,17 @@ if submit_execution:
         'cb_person_default_on_file_Y': 0
     }
 
-    # 3. Trigger structural hot-encoded indicators based on runtime selection
     if home_ownership != "MORTGAGE" and f"person_home_ownership_{home_ownership}" in input_data:
         input_data[f"person_home_ownership_{home_ownership}"] = 1
 
-    # (Note: If user selects 'EDUCATION', all intent switches naturally remain 0, matching the baseline)
     if loan_intent != "EDUCATION" and f"loan_intent_{loan_intent}" in input_data:
         input_data[f"loan_intent_{loan_intent}"] = 1
 
     if historical_default == "YES":
         input_data['cb_person_default_on_file_Y'] = 1
 
-    # Convert to DataFrame
     df_inference = pd.DataFrame([input_data])
 
-    # Enforce precise verified order expected by the binary booster trees
     ordered_columns = [
         'person_age', 'person_income', 'person_emp_length', 'loan_amnt', 
         'person_clean_int_rate', 'loan_to_income_ratio',
@@ -173,45 +178,70 @@ if submit_execution:
     ]
     df_inference = df_inference[ordered_columns]
 
-    # 4. Scale continuous features subset securely
     numeric_features = ['person_age', 'person_income', 'person_emp_length', 'loan_amnt', 'person_clean_int_rate', 'loan_to_income_ratio']
     df_inference[numeric_features] = scaler.transform(df_inference[numeric_features])
 
-    # 5. Extract matrix values array (Shape: 1, 13) to feed the engine
     final_matrix_values = df_inference.values
-    
     prediction = model.predict(final_matrix_values)[0]
     risk_probability = model.predict_proba(final_matrix_values)[0][1]
 
     # ==============================================================================
-    # 5. ENTERPRISE REPORTING METRICS PANEL
+    # 5. VISUAL REPORTING ENGAGEMENT PANEL (LINKEDIN READY)
     # ==============================================================================
     st.html("<hr>")
-    st.subheader("📊 Institutional Underwriting Decision Results")
+    st.subheader("📊 Institutional Risk Analysis Overview")
     
-    res_col1, res_col2 = st.columns(2)
+    # Financial Analytics Cards Block
+    m_col1, m_col2, m_col3, m_col4 = st.columns(4)
+    with m_col1:
+        st.metric(label="Requested Principal", value=f"${loan_amnt:,.0f}")
+    with m_col2:
+        st.metric(label="Debt-to-Income Index", value=f"{loan_to_income_ratio * 100:.1f}%")
+    with m_col3:
+        st.metric(label="Assigned Matrix Rate", value=f"{person_clean_int_rate:.2f}%")
+    with m_col4:
+        st.metric(label="Calculated Default Risk", value=f"{risk_probability * 100:.2f}%")
+
+    st.html("<br>")
+
+    # Split Output Section
+    res_col1, res_col2 = st.columns([1, 1])
     
     with res_col1:
         if prediction == 0:
             st.html("""
-            <div style='background-color: #F0FDF4; border-left: 4px solid #16A34A; padding: 1.5rem; border-radius: 6px;'>
-                <h3 style='color: #16A34A !important; margin: 0; font-size: 18px;'>🟢 APPLICATION STATUS: APPROVED</h3>
-                <p style='color: #475569; margin-top: 5px; margin-bottom: 0; font-weight: 400;'>Risk metrics settle within institutional default safety thresholds.</p>
+            <div style='background-color: #F0FDF4; border: 1px solid #BBF7D0; border-left: 5px solid #16A34A; padding: 1.75rem; border-radius: 8px;'>
+                <h3 style='color: #16A34A !important; margin: 0; font-size: 20px; font-weight:700;'>🟢 UNDERWRITING DECISION: COMPLIANT</h3>
+                <p style='color: #475569; margin-top: 8px; margin-bottom: 0; font-weight: 400; line-height:1.5;'>
+                    The applicant's financial velocity profile maps cleanly within secure volatility bounds. This application is cleared for automated corporate capital allocation.
+                </p>
             </div>
             """)
         else:
             st.html("""
-            <div style='background-color: #FEF2F2; border-left: 4px solid #DC2626; padding: 1.5rem; border-radius: 6px;'>
-                <h3 style='color: #DC2626 !important; margin: 0; font-size: 18px;'>🔴 APPLICATION STATUS: REJECTED</h3>
-                <p style='color: #475569; margin-top: 5px; margin-bottom: 0; font-weight: 400;'>Risk metrics expose extreme volatility signatures violating safety baselines.</p>
+            <div style='background-color: #FEF2F2; border: 1px solid #FEE2E2; border-left: 5px solid #DC2626; padding: 1.75rem; border-radius: 8px;'>
+                <h3 style='color: #DC2626 !important; margin: 0; font-size: 20px; font-weight:700;'>🔴 UNDERWRITING DECISION: REJECTED</h3>
+                <p style='color: #475569; margin-top: 8px; margin-bottom: 0; font-weight: 400; line-height:1.5;'>
+                    The predictive engine flagged significant risk anomalies. Credit metrics exceed acceptable probability limits for automated institutional exposure.
+                </p>
             </div>
             """)
             
     with res_col2:
-        st.html(f"""
-        <div style='background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 1.15rem; border-radius: 6px;'>
-            <span style='color: #64748B; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;'>Modeled Default Probability</span>
-            <h2 style='color: #0F172A; font-size: 30px; margin: 2px 0 8px 0; font-weight: 700;'>{risk_probability * 100:.2f}%</h2>
-        </div>
-        """)
-        st.progress(float(risk_probability))
+        # High-End Visual Distribution Chart Component using Native Streamlit Horizontal Bar Framework
+        st.html("<div style='margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; font-weight:600;'>Risk Spectrum Allocation Chart</div>")
+        
+        # Constructing a premium visualization dataset to display threshold bars on screen
+        chart_data = pd.DataFrame({
+            'Risk Vector': ['Calculated Probability', 'Institutional Alert Threshold'],
+            'Percentage (%)': [float(risk_probability * 100), 25.0] # 25.0% acts as a clear standard enterprise baseline
+        })
+        
+        st.bar_chart(
+            data=chart_data,
+            x='Risk Vector',
+            y='Percentage (%)',
+            color=['#0284C7' if prediction == 0 else '#DC2626'], # Adapts color instantly to fit the risk profile status
+            use_container_width=True,
+            height=160
+        )
